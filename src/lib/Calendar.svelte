@@ -1,10 +1,13 @@
 <script>
   import { invalidateAll } from '$app/navigation';
+  import { page } from '$app/stores';
+  import EventModal from './EventModal.svelte';
   import AddEventForm from '$lib/AddEventForm.svelte';
 
-  /** @type {boolean} */
-  export let interactive = false;
   // LOGIKA KALENDARZA
+  /** @type {import('$lib/types').Event[]} */
+  export let events = [];
+  
   const monthNames = [
     'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
     'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
@@ -19,44 +22,57 @@
   const yearOptions = [];
   for (let i = 2020; i <= year+10; i++)yearOptions.push(i);
 
-  /** @type {{ value: string | number; isToday: boolean; isCurrentMonth: boolean; }[]} */
+  /** @type {{ value: string | number; isToday: boolean; isCurrentMonth: boolean; events: any[] }[]} */
   let dates = [];
   $: {
     const firstDayOfMonth = new Date(year, month, 1);
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const startDayIndex = (firstDayOfMonth.getDay() + 6) % 7;
 
-    const newDates = [];
-    for (let i = 0; i < startDayIndex; i++) {
-      newDates.push({ value: '', isToday: false, isCurrentMonth: false });
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      const isToday = i === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-      newDates.push({ value: i, isToday: isToday, isCurrentMonth: true });
-    }
-    dates = newDates;
+    dates = Array.from({ length: startDayIndex + daysInMonth }, (_, i) => {
+            const value = i >= startDayIndex ? i - startDayIndex + 1 : '';
+            const isToday = value ? (Number(value) === today.getDate() && month === today.getMonth() && year === today.getFullYear()) : false;
+            const isCurrentMonth = value !== '';
+            return { value, isToday, isCurrentMonth, events: [] };
+        });
+    if (events) {
+            dates = dates.map(date => ({
+                ...date,
+                events: events.filter(event => {
+                    const eventDate = new Date(event.startDate).getDate();
+                    const eventMonth = new Date(event.startDate).getMonth();
+                    const eventYear = new Date(event.startDate).getFullYear();
+                    return eventDate === Number(date.value) && eventMonth === month && eventYear === year;
+                })
+            }));
+        }
   }
   // LOGIKA WYDARZEŃ
+  /** @type {boolean} */
+  export let interactive = false;
+  /** @type {import('$lib/types').Event | null} */
+  let selectedEvent = null;
+  let currentUserId = '';
+  $: currentUserId = $page.data?.user?._id ?? '';
   let showAddEventModal = false;
+
 	/** @param {any} formData */
   async function handleCreateEvent(formData) {
-        console.log("Creating event with data:", formData);
-
-        const response = await fetch('/api/events', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        });
-
-        if (response.ok) {
-            showAddEventModal = false;
-            console.log("Event created successfully!");
-            // invalidateAll();
-        } else {
-            const errorData = await response.json();
-            alert(`Błąd: ${errorData.error || 'Nie udało się utworzyć wydarzenia'}`);
-        }
+    console.log("Creating event with data:", formData);
+    const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+    });
+    if (response.ok) {
+        showAddEventModal = false;
+        console.log("Event created successfully!");
+        await invalidateAll();
+    } else {
+        const errorData = await response.json();
+        alert(`Błąd: ${errorData.error || 'Nie udało się utworzyć wydarzenia'}`);
     }
+  }
 </script>
 
 <div class="content-box calendar-widget">
@@ -90,9 +106,24 @@
         <span class="date-number" class:is-today={date.isToday}>
           {date.value}
         </span>
+        <div class="event-emojis">
+          {#each date.events as event}
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <span 
+              class="event-emoji"
+              style="color: red; font-size: 1.2rem;"
+              title={`Organizator: ${event.createdBy?.name || 'Bezimienny'} ${event.createdBy?.surname || ''}\nWydarzenie: ${event.title || 'Brak tytułu'}`}
+              on:click={() => {selectedEvent = event; console.log("Selected event:", event);}}
+              on:keydown={(e) => e.key === 'Enter' && (selectedEvent = event)}
+            >
+              {event.emoji || '🎉'}
+            </span>
+          {/each}
+        </div>
       </div>
     {/each}
   </div>
+
   {#if interactive}
     <div class="calendar-actions">
       <button class="add-event-button pixel-font" on:click={() => (showAddEventModal = true)}>
@@ -100,12 +131,19 @@
       </button>
     </div>
   {/if}
-  {#if showAddEventModal}
+  {#if showAddEventModal && !selectedEvent}
     <AddEventForm 
-        handleSave={handleCreateEvent}
-        handleCancel={() => showAddEventModal = false}
+      handleSave={handleCreateEvent}
+      handleCancel={() => showAddEventModal = false}
     />
-{/if}
+  {/if}
+  {#if selectedEvent && !showAddEventModal}
+    <EventModal 
+      event={selectedEvent} 
+      currentUserId={currentUserId} 
+      onClose={() => selectedEvent = null}
+    />
+  {/if}
 </div>
 
 <style>
@@ -150,13 +188,14 @@
   .date-cell-wrapper {
     border: 2px solid var(--accent-color);
     border-radius: 5px;
-    padding: 8px 5px;
+    padding: 1px 5px;
     font-size: 0.85em;
     min-width: 25px;
-    min-height: 40px;
+    min-height: 60px;
     background-color: var(--background-color);
     color: var(--text-color);
     transition: background-color 0.2s;
+    position: relative;
   }
   .date-cell-wrapper.not-current-month {
     background-color: transparent;
@@ -166,7 +205,7 @@
   .date-number {
     display: inline-block;
     color: var(--text-color);
-    font-size: 1.25em;
+    font-size: 1.25rem;
   }
   .date-number.is-today {
     background-color: var(--accent-color);
@@ -178,8 +217,25 @@
     line-height: 24px;
     text-align: center;
   }
+  .event-emojis {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .event-emoji {
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s;
+    display: inline-block;
+    margin: 0px;
+    padding: 0px;
+  }
+  .event-emoji:hover {
+    transform: scale(1.2);
+    transition: 0.2s;
+  }
   .calendar-actions {
-    margin-top: 1.5rem; /* Odstęp od siatki kalendarza */
+    margin-top: 0.5rem;
   }
   .add-event-button {
     background-color: var(--accent-color);

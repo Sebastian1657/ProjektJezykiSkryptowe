@@ -71,10 +71,18 @@ export async function GET({ url, cookies }) {
 
         console.log('User verified in DB. Creating session cookie.');
         const userSessionData = {
-            sub: claims.sub,
-            name: claims.name,
-            picture: claims.picture,
-            email: claims.email,
+            _id: userInDb._id.toString(),
+            sub: userInDb.sub,
+            name: userInDb.name,
+            surname: userInDb.surname,
+            picture: userInDb.picture,
+            email: userInDb.email,
+            favoriteColor: userInDb.favoriteColor,
+            dateOfBirth: userInDb.dateOfBirth ? userInDb.dateOfBirth.toISOString() : null,
+            role: userInDb.role,
+            createdAt: userInDb.createdAt.toISOString(),
+            lastLogin: userInDb.lastLogin ? userInDb.lastLogin.toISOString() : null,
+            isActive: userInDb.isActive,
             exp: tokenSet.expires_at
         };
         const signedSession = sign(JSON.stringify(userSessionData), SESSION_SECRET);

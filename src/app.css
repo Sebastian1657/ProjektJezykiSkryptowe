@@ -37,9 +37,9 @@ a.pixel-font {
 .content-box {
   border: var(--border-style-medium);
   border-radius: var(--border-radius);
-  padding: 15px 20px;
+  padding: 5px 10px;
   background-color: var(--box-background);
-  margin-bottom: 15px;
+  margin-bottom: 10px;
   color: var(--primary-text-color);
 }
 

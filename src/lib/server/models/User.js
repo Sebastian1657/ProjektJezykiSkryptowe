@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 // schemat dokumentu użytkownika
 const userSchema = new mongoose.Schema({
+    _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     sub: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     name: { type: String },

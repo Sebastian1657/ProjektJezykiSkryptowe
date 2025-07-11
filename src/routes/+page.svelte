@@ -1,6 +1,8 @@
 <script>
-    import ContentBox from '../lib/ContentBox.svelte';
-    import Calendar from '../lib/Calendar.svelte';
+  import ContentBox from '../lib/ContentBox.svelte';
+  import Calendar from '../lib/Calendar.svelte';
+  
+  export let data;
 </script>
 
   <div class="container">
@@ -18,12 +20,12 @@
       </div>
   
       <div class="right-column">
-        <Calendar interactive={false} />
+        <Calendar interactive={false} events={data.events}/>
       </div>
     </div>
   
     <ContentBox>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Uderus au rus ac justo odmollis ac tingudaicien sed.
+      Sebastian Miler 21277 - 2024/2025
     </ContentBox>
   
   </div>

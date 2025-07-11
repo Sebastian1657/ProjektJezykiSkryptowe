@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const eventSchema = new mongoose.Schema({
+    _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
@@ -11,7 +12,6 @@ const eventSchema = new mongoose.Schema({
         ref: 'User',
         index: true
     }],
-
     title: {
         type: String,
         required: [true, 'Tytuł wydarzenia jest wymagany.'],
@@ -28,7 +28,8 @@ const eventSchema = new mongoose.Schema({
         required: [true, 'Data rozpoczęcia jest wymagana.']
     },
     endDate: {
-        type: Date
+        type: Date,
+        required: false,
     },
     emoji: {
         type: String,

@@ -5,7 +5,7 @@ import { connectToDatabase } from '$lib/server/database';
 
 connectToDatabase();
 
-const publicPaths = ['/api/auth/login', '/api/auth/callback', '/api/auth/logout', '/access-denied', '/static/favicon.png'];
+const publicPaths = ['/api/auth/login', '/api/auth/callback', '/api/auth/logout', '/access-denied', '/static/favicon.png', '/wylogowano'];
 
 export async function handle({ event, resolve }) {
     console.log(`\n--- Hooks running for: ${event.url.pathname} ---`);
@@ -19,7 +19,6 @@ export async function handle({ event, resolve }) {
             try {
                 const userFromCookie = JSON.parse(unsignedData);
                 if (userFromCookie?.exp && userFromCookie.exp * 1000 > Date.now()) {
-                    console.log(`Valid session cookie found for user: ${userFromCookie.sub}`);
                     event.locals.user = userFromCookie;
                 } else {
                     console.log('Session expired, deleting cookie.');
@@ -38,8 +37,7 @@ export async function handle({ event, resolve }) {
     const isPublicPath = publicPaths.some((path) => event.url.pathname.startsWith(path));
 
     if (event.locals.user) {
-        console.log(`Allowing access for user: ${event.locals.user.sub} to path: ${event.url.pathname}`);
-        if (isPublicPath && event.url.pathname !== '/api/auth/callback') {
+        if (isPublicPath && event.url.pathname !== '/api/auth/callback' && event.url.pathname !== '/api/auth/logout') {
             throw redirect(303, '/');
         }
         return resolve(event);

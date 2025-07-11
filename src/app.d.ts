@@ -6,10 +6,14 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			user: {
-				sub: string;
+				_id: string;
 				name?: string;
+				surname?: string;
 				picture?: string;
-				email?: string;
+				birthdate?: string;
+				email: string;
+				favoriteColor?: string;
+				createdAt?: string;
 				exp?: number;
 			} | null;
 		}

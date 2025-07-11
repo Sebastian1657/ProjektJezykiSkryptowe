@@ -1,6 +1,7 @@
 <script>
-   import { invalidateAll } from '$app/navigation';
-   import AccountEditForm from '$lib/AccountEditForm.svelte';
+    import { invalidateAll, goto } from '$app/navigation';
+
+    import AccountEditForm from '$lib/AccountEditForm.svelte';
 
     /** @type {import('./$types').PageData} */
     export let data;
@@ -9,23 +10,22 @@
     $: profile = data.profile;
     let isEditing = false;
 
-   /** @param {typeof profile} formData */
-   async function handleSave(formData) {
-      console.log("Parent's handleSave received data:", formData);
-      
-      // Wyślij dane do nowego punktu końcowego API
-      const response = await fetch('/api/user/profile', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-      });
-      if (response.ok) {
-          isEditing = false;
-          await invalidateAll(); 
-      } else {
-          alert('Nie udało się zapisać zmian.');
-      }
-   }
+    /** @param {typeof profile} formData */
+    async function handleSave(formData) {
+        console.log("Parent's handleSave received data:", formData);
+        
+        const response = await fetch('/api/user/profile', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
+        if (response.ok) {
+            isEditing = false;
+            await invalidateAll(); 
+        } else {
+            alert('Nie udało się zapisać zmian.');
+        }
+    }
 </script>
 
 <div class="account-container">
@@ -76,6 +76,9 @@
                         ></span>
                         <span>{profile.favoriteColor || 'Nie podano'}</span>
                     </div>
+                </div>
+                <div class="logout-button-wrapper">
+                    <a href="/api/auth/logout" rel="external" class="button-logout">Wyloguj się</a>
                 </div>
             </div>
         </div>
@@ -176,7 +179,24 @@
         height: 24px;
         border-radius: 5px;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        /* Tło jest ustawiane dynamicznie przez `style` */
+    }
+    .logout-button-wrapper {
+        margin-top: 2rem;
+        display: flex;
+        justify-content: flex-end;
+    }
+    .button-logout {
+        background: #822;
+        color: white;
+        border: none;
+        padding: 0.5rem 1.2rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-weight: bold;
+    }
+    .button-logout:hover {
+        background: #a33;
     }
 
 </style>

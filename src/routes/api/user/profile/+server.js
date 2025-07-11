@@ -3,6 +3,7 @@ import User from '$lib/server/models/User.js';
 
 /** @type {import('./$types').RequestHandler} */
 export async function PUT({ request, locals }) {
+    console.log("locals.user:", locals.user);
     if (!locals.user) {
         throw error(401, 'Unauthorized');
     }
@@ -10,7 +11,7 @@ export async function PUT({ request, locals }) {
 
     try {
         const updatedUser = await User.findOneAndUpdate(
-            { sub: locals.user.sub },
+            { _id: locals.user._id },
             {
                 name: formData.name,
                 surname: formData.surname,
@@ -23,7 +24,6 @@ export async function PUT({ request, locals }) {
         if (!updatedUser) {
             throw error(404, 'User not found');
         }
-
         return json({ success: true, message: 'Profile updated successfully.' });
 
     } catch (e) {
@@ -33,13 +33,17 @@ export async function PUT({ request, locals }) {
 }
 /** @type {import('./$types').RequestHandler} */
 export async function GET({ locals }) {
+    console.log("locals.user:", locals.user);
     if (!locals.user) {
         throw error(401, 'Unauthorized');
     }
     
     try {
-        const users = await User.find({}, 'name email').lean();
+        const users = await User.find({}, 
+            ['_id', 'name', 'surname', 'email', 'picture', 'favoriteColor', 'role', 'dateOfBirth']
+        ).lean();
         return json(users);
+        
     } catch (e) {
         throw error(500, 'Failed to fetch users');
     }

@@ -8,7 +8,7 @@ export const load = async ({ locals }) => {
     if (!locals.user) {
         redirect(302, '/api/auth/logout');
     }
-    const profilebd = await User.findOne({ sub: locals.user.sub }).lean();
+    const profilebd = await User.findOne({ _id: locals.user._id }).lean();
 
     if (!profilebd) {
         throw redirect(302, '/api/auth/logout');
@@ -17,8 +17,6 @@ export const load = async ({ locals }) => {
     return {
         profile: {
             // @ts-ignore
-            sub: profilebd.sub,
-            // @ts-ignore
             email: profilebd.email,
             // @ts-ignore
             name: profilebd.name,
@@ -26,8 +24,6 @@ export const load = async ({ locals }) => {
             surname: profilebd.surname,
             // @ts-ignore
             picture: profilebd.picture,
-            // @ts-ignore
-            role: profilebd.role,
             // @ts-ignore
             dateOfBirth: profilebd.dateOfBirth ? profilebd.dateOfBirth.toISOString().split('T')[0] : null,
             // @ts-ignore

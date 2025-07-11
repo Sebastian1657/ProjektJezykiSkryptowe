@@ -10,6 +10,7 @@ export async function GET({ cookies }) {
         scope: 'openid profile email',
         response_mode: 'query',
         state: state,
+        prompt: 'login'
     });
 
     cookies.set('auth_state', state, {

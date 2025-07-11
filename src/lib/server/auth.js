@@ -8,7 +8,6 @@ export async function getAuth0Issuer() {
         if (!AUTH0_DOMAIN) throw new Error('AUTH0_DOMAIN not set');
         try {
             if (!OpenIDClientIssuer) throw new Error("Issuer class could not be resolved.");
-            // Upewnij się, że discover jest poprawnie wywoływane
             console.log('Attempting Issuer.discover...');
             auth0IssuerInstance = await OpenIDClientIssuer.discover(`https://${AUTH0_DOMAIN}/`);
             console.log('Issuer discovered successfully.');
@@ -23,7 +22,6 @@ export async function getAuth0Issuer() {
 export async function getAuth0Client() {
     const issuer = await getAuth0Issuer();
     if (!issuer) {
-        // Dodaj sprawdzenie, czy issuer został pomyślnie pobrany
         throw new Error("Failed to get Auth0 Issuer instance.");
     }
     return new issuer.Client({
